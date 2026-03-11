@@ -86,6 +86,17 @@ python "$HOME/.cline/skills/openproject/scripts/openproject_api.py" whoami
 python "$HOME/.cline/skills/jupyter-notebook/scripts/new_notebook.py" --help
 ```
 
+## Obsidian path setup
+
+If your Obsidian vault location is not the default, set these variables in the shell or your approved environment loader:
+
+```powershell
+$env:OBSIDIAN_VAULT="C:\path\to\vault"
+$env:OBSIDIAN_INBOX="C:\path\to\vault\00. Inbox"
+```
+
+The included rules and workflows prefer `OBSIDIAN_VAULT` and `OBSIDIAN_INBOX` when they are present, then fall back to `~/Obsidian_Vault` and `~/Obsidian_Vault/00. Inbox`.
+
 ## Notes
 
 - The Obsidian rules are intentionally generic. Adjust the preferred vault path or template conventions for your team.

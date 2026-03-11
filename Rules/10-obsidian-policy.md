@@ -4,8 +4,10 @@ Use these rules when the user asks to save, capture, summarize, organize, or quo
 
 ## Vault defaults
 
-- Preferred vault path: `~/Obsidian_Vault`
-- Default inbox path: `~/Obsidian_Vault/00. Inbox`
+- First check `OBSIDIAN_VAULT`. If it is set, treat that as the preferred vault path.
+- First check `OBSIDIAN_INBOX`. If it is set, treat that as the default inbox path.
+- If `OBSIDIAN_INBOX` is not set but `OBSIDIAN_VAULT` is set, use `<OBSIDIAN_VAULT>/00. Inbox`.
+- If neither variable is set, use `~/Obsidian_Vault` and `~/Obsidian_Vault/00. Inbox`.
 
 ## Rule discovery order
 
@@ -25,7 +27,7 @@ If multiple vault documents conflict, prefer the most specific document for the 
 When the user says things like "메모하자", "옵시디언 저장", or "정리해줘":
 
 1. Prefer saving to the Obsidian vault instead of the current working directory.
-2. If no destination rule is found, save to `00. Inbox`.
+2. Resolve the default destination from `OBSIDIAN_INBOX`, then `OBSIDIAN_VAULT/00. Inbox`, then `~/Obsidian_Vault/00. Inbox`.
 3. Add YAML frontmatter with at least:
    - `type`
    - `author`
