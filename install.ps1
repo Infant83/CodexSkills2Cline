@@ -47,11 +47,12 @@ $sourceRoot = $PSScriptRoot
 $rulesSource = Join-Path $sourceRoot "Rules"
 $workflowsSource = Join-Path $sourceRoot "Workflows"
 $skillsSource = Join-Path $sourceRoot "skills"
+$documentsRoot = [Environment]::GetFolderPath("MyDocuments")
 
 if ($Scope -eq "Global") {
-    $rulesTarget = Join-Path $HOME "Documents\Cline\Rules"
-    $workflowsTarget = Join-Path $HOME "Documents\Cline\Workflows"
-    $skillsTarget = Join-Path $HOME ".cline\skills"
+    $rulesTarget = Join-Path (Join-Path $documentsRoot "Cline") "Rules"
+    $workflowsTarget = Join-Path (Join-Path $documentsRoot "Cline") "Workflows"
+    $skillsTarget = Join-Path (Join-Path $HOME ".cline") "skills"
 }
 else {
     if (-not $ProjectPath) {
@@ -61,7 +62,7 @@ else {
     $resolvedProjectPath = (Resolve-Path -LiteralPath $ProjectPath).Path
     $rulesTarget = Join-Path $resolvedProjectPath ".clinerules"
     $workflowsTarget = Join-Path $rulesTarget "workflows"
-    $skillsTarget = Join-Path $resolvedProjectPath ".cline\skills"
+    $skillsTarget = Join-Path (Join-Path $resolvedProjectPath ".cline") "skills"
 }
 
 Write-Host "Installing Cline pack"

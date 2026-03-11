@@ -40,6 +40,27 @@ Project-local install into a repo:
 pwsh .\install.ps1 -Scope Project -ProjectPath C:\path\to\repo
 ```
 
+Global install on Linux with PowerShell 7:
+
+```bash
+pwsh ./install.ps1 -Scope Global
+```
+
+Project-local install on Linux with PowerShell 7:
+
+```bash
+pwsh ./install.ps1 -Scope Project -ProjectPath /path/to/repo
+```
+
+Manual install on Linux without PowerShell:
+
+```bash
+mkdir -p "$HOME/Documents/Cline/Rules" "$HOME/Documents/Cline/Workflows" "$HOME/.cline/skills"
+cp -R Rules/. "$HOME/Documents/Cline/Rules/"
+cp -R Workflows/. "$HOME/Documents/Cline/Workflows/"
+cp -R skills/. "$HOME/.cline/skills/"
+```
+
 What the installer copies:
 
 - Global rules: `~/Documents/Cline/Rules`
@@ -51,6 +72,12 @@ Project mode copies to:
 - `<repo>\.clinerules`
 - `<repo>\.clinerules\workflows`
 - `<repo>\.cline\skills`
+
+On Linux, the same layout resolves to:
+
+- `<repo>/.clinerules`
+- `<repo>/.clinerules/workflows`
+- `<repo>/.cline/skills`
 
 The installer overwrites files with the same names, but it does not delete old files that are no longer present in this pack.
 
