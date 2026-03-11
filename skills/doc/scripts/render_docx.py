@@ -16,6 +16,12 @@ from pdf2image import convert_from_path, pdfinfo_from_path
 TWIPS_PER_INCH: int = 1440
 
 
+def configure_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def ensure_system_tools() -> None:
     missing: list[str] = []
     for tool in ("soffice", "pdftoppm"):
@@ -225,6 +231,7 @@ def rasterize(
 
 
 def main() -> None:
+    configure_stdio()
     parser = argparse.ArgumentParser(description="Render DOCX-like file to PNG images.")
     parser.add_argument(
         "input_path",

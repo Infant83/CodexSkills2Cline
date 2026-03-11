@@ -3,8 +3,15 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
+
+
+def configure_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
 
 
 def slugify(text: str) -> str:
@@ -103,6 +110,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    configure_stdio()
     args = parse_args()
 
     script_path = Path(__file__).resolve()

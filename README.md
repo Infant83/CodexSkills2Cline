@@ -124,6 +124,17 @@ $env:OBSIDIAN_INBOX="C:\path\to\vault\00. Inbox"
 
 The included rules and workflows prefer `OBSIDIAN_VAULT` and `OBSIDIAN_INBOX` when they are present, then fall back to `~/Obsidian_Vault` and `~/Obsidian_Vault/00. Inbox`.
 
+## Encoding note for on-prem Windows
+
+Some on-prem Windows environments still default Python console IO to `cp949`. If you see garbled Korean text or `UnicodeEncodeError`, prefer UTF-8 mode before running the bundled Python helpers:
+
+```powershell
+$env:PYTHONUTF8="1"
+python "$HOME/.cline/skills/openproject/scripts/openproject_api.py" whoami
+```
+
+The bundled Python scripts also reconfigure `stdout` and `stderr` to UTF-8 where supported, but setting `PYTHONUTF8=1` is still the safest shell-level default.
+
 ## Notes
 
 - The Obsidian rules are intentionally generic. Adjust the preferred vault path or template conventions for your team.

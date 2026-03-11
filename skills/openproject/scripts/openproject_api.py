@@ -12,6 +12,12 @@ DEFAULT_LIMIT = 20
 API_SUFFIX = "/api/v3"
 
 
+def configure_stdio():
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def normalize_api_root(base_url):
     if not base_url:
         raise RuntimeError(
@@ -381,6 +387,7 @@ def build_parser():
 
 
 def main():
+    configure_stdio()
     parser = build_parser()
     args = parser.parse_args()
     client = OpenProjectClient(args.base_url, args.api_key)
