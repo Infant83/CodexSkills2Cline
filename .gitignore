@@ -1,0 +1,10 @@
+.cline/
+.clinerules/
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.env
+openproject.env
+tmp/
+output/
