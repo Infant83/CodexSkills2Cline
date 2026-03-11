@@ -5,7 +5,7 @@ import json
 import os
 import sys
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
 DEFAULT_LIMIT = 20
@@ -30,15 +30,32 @@ def instance_root(api_root):
     return api_root
 
 
+def resolve_instance_path(api_root, path):
+    root = instance_root(api_root)
+    parts = urlsplit(root)
+    base_path = parts.path.rstrip("/")
+
+    if base_path and (path == base_path or path.startswith(f"{base_path}/")):
+        resolved_path = path
+    elif base_path:
+        resolved_path = f"{base_path}{path}"
+    else:
+        resolved_path = path
+
+    return urlunsplit((parts.scheme, parts.netloc, resolved_path, "", ""))
+
+
 def build_url(api_root, path="", params=None):
     if path.startswith("http://") or path.startswith("https://"):
         url = path
     elif not path or path == ".":
         url = api_root
     elif path.startswith(API_SUFFIX):
-        url = f"{instance_root(api_root)}{path}"
+        url = resolve_instance_path(api_root, path)
+    elif path.startswith("/"):
+        url = resolve_instance_path(api_root, path)
     else:
-        url = f"{api_root}/{path.lstrip('/')}"
+        url = f"{api_root.rstrip('/')}/{path.lstrip('/')}"
 
     if params:
         query = urlencode(params, doseq=True)
