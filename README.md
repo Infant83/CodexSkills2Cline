@@ -11,6 +11,7 @@ The pack is designed for an on-prem environment. Shared skills stay self-contain
 ## Included
 
 - Shared skills:
+  - `onprem-document-vision`
   - `aims-gitlab`
   - `openproject`
   - `doc`
@@ -179,13 +180,25 @@ python "$HOME/.cline/skills/aims-gitlab/scripts/aims_gitlab_api.py" whoami
 
 `GITHUB_BASE_URL` is also accepted as a compatibility fallback if the local environment already uses that name for the same on-prem GitLab host.
 
-6. For Jupyter scaffolding, test:
+6. For on-prem document vision, test:
+
+```powershell
+$env:OPENAI_BASE_URL="http://10.116.240.101:8030/openai"
+$env:OPENAI_MODEL_VISION="Llama-4-Scout"
+$env:OPENAI_API_KEY="your-api-key"
+python -m pip install pypdfium2 pillow
+python "$HOME/.cline/skills/onprem-document-vision/scripts/document_vision_review.py" `
+  review "C:\path\to\file.pdf" `
+  --max-pages 2
+```
+
+7. For Jupyter scaffolding, test:
 
 ```powershell
 python "$HOME/.cline/skills/jupyter-notebook/scripts/new_notebook.py" --help
 ```
 
-7. For Python-first Outlook mail access on Windows:
+8. For Python-first Outlook mail access on Windows:
 
 ```powershell
 python -m pip install pywin32

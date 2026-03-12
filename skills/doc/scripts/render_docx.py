@@ -1,17 +1,14 @@
 import argparse
 import os
-import re
 import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
-from os import makedirs, replace
+from os import makedirs
 from os.path import abspath, basename, exists, expanduser, join, splitext
 from shutil import which
 import sys
-from typing import Sequence, cast
+from typing import Sequence
 from zipfile import ZipFile
-
-from pdf2image import convert_from_path, pdfinfo_from_path
 
 TWIPS_PER_INCH: int = 1440
 
@@ -22,15 +19,25 @@ def configure_stdio() -> None:
             stream.reconfigure(encoding="utf-8", errors="replace")
 
 
+def load_pdfium():
+    try:
+        import pypdfium2 as pdfium
+    except ImportError as exc:
+        raise RuntimeError(
+            "Missing Python package 'pypdfium2'. Install it with 'python -m pip install pypdfium2 pillow'."
+        ) from exc
+    return pdfium
+
+
 def ensure_system_tools() -> None:
     missing: list[str] = []
-    for tool in ("soffice", "pdftoppm"):
+    for tool in ("soffice",):
         if which(tool) is None:
             missing.append(tool)
     if missing:
         tools = ", ".join(missing)
         raise RuntimeError(
-            f"Missing required system tool(s): {tools}. Install LibreOffice and Poppler, then retry."
+            f"Missing required system tool(s): {tools}. Install LibreOffice, then retry."
         )
 
 
@@ -74,6 +81,7 @@ def calc_dpi_via_ooxml_docx(input_path: str, max_w_px: int, max_h_px: int) -> in
 
 def calc_dpi_via_pdf(input_path: str, max_w_px: int, max_h_px: int) -> int:
     """Convert input to PDF and compute DPI from its page size."""
+    pdfium = load_pdfium()
     with tempfile.TemporaryDirectory(prefix="soffice_profile_") as user_profile:
         with tempfile.TemporaryDirectory(prefix="soffice_convert_") as convert_tmp_dir:
             stem = splitext(basename(input_path))[0]
@@ -81,23 +89,19 @@ def calc_dpi_via_pdf(input_path: str, max_w_px: int, max_h_px: int) -> int:
             if not (pdf_path and exists(pdf_path)):
                 raise RuntimeError("Failed to convert input to PDF for DPI computation.")
 
-            info = pdfinfo_from_path(pdf_path)
-            size_val = info.get("Page size")
-            if not size_val:
-                for k, v in info.items():
-                    if isinstance(v, str) and "size" in k.lower() and "pts" in v:
-                        size_val = v
-                        break
-            if not isinstance(size_val, str):
-                raise RuntimeError("Failed to read PDF page size for DPI computation.")
+            pdf = pdfium.PdfDocument(pdf_path)
+            try:
+                if len(pdf) == 0:
+                    raise RuntimeError("Converted PDF has no pages for DPI computation.")
+                page = pdf[0]
+                width_pts, height_pts = page.get_size()
+            finally:
+                close = getattr(pdf, "close", None)
+                if callable(close):
+                    close()
 
-            m = re.search(r"(\d+)\s*x\s*(\d+)\s*pts", size_val)
-            if not m:
-                raise RuntimeError("Unrecognized PDF page size format.")
-            width_pts = int(m.group(1))
-            height_pts = int(m.group(2))
-            width_in = width_pts / 72.0
-            height_in = height_pts / 72.0
+            width_in = float(width_pts) / 72.0
+            height_in = float(height_pts) / 72.0
             if width_in <= 0 or height_in <= 0:
                 raise RuntimeError("Invalid PDF page size values.")
             return round(min(max_w_px / width_in, max_h_px / height_in))
@@ -187,6 +191,7 @@ def rasterize(
     makedirs(out_dir, exist_ok=True)
     doc_path = abspath(doc_path)
     stem = splitext(basename(doc_path))[0]
+    pdfium = load_pdfium()
 
     # Use a unique user profile to avoid LibreOffice profile lock when running concurrently
     with tempfile.TemporaryDirectory(prefix="soffice_profile_") as user_profile:
@@ -203,28 +208,22 @@ def rasterize(
                 raise RuntimeError(
                     "Failed to produce PDF for rasterization (direct and ODT fallback)."
                 )
-            paths_raw = cast(
-                list[str],
-                convert_from_path(
-                    pdf_path,
-                    dpi=dpi,
-                    fmt="png",
-                    thread_count=8,
-                    output_folder=out_dir,
-                    paths_only=True,
-                    output_file="page",
-                ),
-            )
+            pdf = pdfium.PdfDocument(pdf_path)
+            try:
+                page_scale = dpi / 72.0
+                pages: list[tuple[int, str]] = []
+                for page_index in range(len(pdf)):
+                    page = pdf[page_index]
+                    bitmap = page.render(scale=page_scale)
+                    pil_image = bitmap.to_pil()
+                    dst_path = join(out_dir, f"page-{page_index + 1}.png")
+                    pil_image.save(dst_path, format="PNG")
+                    pages.append((page_index + 1, dst_path))
+            finally:
+                close = getattr(pdf, "close", None)
+                if callable(close):
+                    close()
 
-    # Rename convert_from_path's output format f'page{thread_id:04d}-{page_num:02d}.<ext>' to 'page-<num>.<ext>'
-    pages: list[tuple[int, str]] = []
-    for src_path in paths_raw:
-        base = splitext(basename(src_path))[0]
-        page_num_str = base.split("-")[-1]
-        page_num = int(page_num_str)
-        dst_path = join(out_dir, f"page-{page_num}.png")
-        replace(src_path, dst_path)
-        pages.append((page_num, dst_path))
     pages.sort(key=lambda t: t[0])
     final_paths = [path for _, path in pages]
     return final_paths

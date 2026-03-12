@@ -14,6 +14,7 @@
 - Prefer installed shared skills for repeated, multi-step, failure-prone, or stateful tasks.
 - Do not create one skill per UI button or per product mode.
 - Create or keep a dedicated skill only when the workflow is reused, involves login/session/upload/download handling, has several easy-to-misexecute actions, or needs a stable output structure.
+- For PDF or DOCX review that depends on rendered pages, diagrams, screenshots, tables, or other visual content, prefer the shared on-prem document vision skill instead of assuming the active model can inspect images reliably.
 
 ## Obsidian capture
 

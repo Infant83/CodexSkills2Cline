@@ -1,11 +1,13 @@
 ---
 name: pdf
-description: Work with PDF files when reading, creating, or reviewing documents where rendering and layout matter. Prefer visual checks by rendering pages and use Python tools such as reportlab, pdfplumber, and pypdf for generation and extraction.
+description: Work with PDF files when reading, creating, or reviewing documents where rendering and layout matter. Prefer local extraction for text PDFs, and when scanned pages, tables, diagrams, or layout-critical review require image understanding, use the shared on-prem document vision helper.
 ---
 
 # PDF
 
 ## When to use
+
+If this skill is installed under DeepAgents, replace `~/.cline/skills` in the examples below with `~/.deepagents/agent/skills`.
 
 - Read or review PDF content where layout matters.
 - Create PDFs programmatically with reliable formatting.
@@ -13,9 +15,9 @@ description: Work with PDF files when reading, creating, or reviewing documents 
 
 ## Workflow
 
-1. Prefer visual review by rendering pages to PNG and inspecting them.
-2. Use `reportlab` to generate new PDFs.
-3. Use `pdfplumber` or `pypdf` for extraction and quick checks.
+1. Use `pdfplumber` or `pypdf` first for text-heavy PDFs and quick checks.
+2. If the PDF is scanned, image-heavy, table-heavy, or layout-sensitive, route it through `onprem-document-vision` instead of assuming the base LLM can inspect rendered pages.
+3. Use `reportlab` to generate new PDFs.
 4. After each meaningful update, re-render pages and verify alignment, spacing, and legibility.
 
 ## Dependencies
@@ -23,23 +25,20 @@ description: Work with PDF files when reading, creating, or reviewing documents 
 Python packages:
 
 ```bash
-python -m pip install reportlab pdfplumber pypdf
+python -m pip install reportlab pdfplumber pypdf pypdfium2 pillow
 ```
 
-Optional system tools for rendering:
-
-```bash
-# macOS
-brew install poppler
-
-# Ubuntu or Debian
-sudo apt-get install -y poppler-utils
-```
+`pypdfium2` handles page rendering directly, so no separate Poppler install is required for the shared PDF review path.
 
 ## Rendering
 
-```bash
-pdftoppm -png input.pdf output_prefix
+If the active Cline model does not support vision well, use the shared on-prem vision helper:
+
+```powershell
+python "$HOME/.cline/skills/onprem-document-vision/scripts/document_vision_review.py" `
+  review "C:\path\to\file.pdf" `
+  --max-pages 5 `
+  --markdown
 ```
 
 ## Quality expectations
@@ -47,3 +46,4 @@ pdftoppm -png input.pdf output_prefix
 - Keep typography, spacing, and hierarchy polished.
 - Avoid clipped text, overlapping elements, broken tables, or unreadable glyphs.
 - Do not deliver until the latest rendered pages are clean.
+- If visual verification could not be completed through the on-prem vision helper, state that risk explicitly.

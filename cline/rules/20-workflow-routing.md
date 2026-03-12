@@ -31,6 +31,7 @@ Normalize common requests into reusable profiles such as:
 - `fact-check-and-augment`
 - `data-table-analysis`
 - `document-conversion`
+- `document-vision-review`
 - `openproject-update`
 
 Before execution, resolve these fields when relevant:
