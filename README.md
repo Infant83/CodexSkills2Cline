@@ -168,6 +168,25 @@ python "$HOME/.cline/skills/openproject/scripts/openproject_api.py" whoami
 
 The bundled Python scripts also reconfigure `stdout` and `stderr` to UTF-8 where supported, but setting `PYTHONUTF8=1` is still the safest shell-level default.
 
+Repository encoding policy:
+
+- PowerShell source files (`*.ps1`, `*.psm1`, `*.psd1`) should be saved as `UTF-8 with BOM`
+- Python, Markdown, JSON, YAML, `.env`, and other text source files should be saved as `UTF-8`
+- The Outlook mail archive skill writes exported `message.md` and `manifest-*.csv` as UTF-8 with BOM for better Windows compatibility
+- `git clone`, `git pull`, Linux `cp`, `scp`, and `rsync` do not transcode encodings; they preserve the bytes already stored in the repo
+
+Repository safeguards added in this pack:
+
+- [`.editorconfig`](C:\Users\angpa\myProjects\Daily_Work\Skills_convert\.editorconfig) defines editor save defaults
+- [`.gitattributes`](C:\Users\angpa\myProjects\Daily_Work\Skills_convert\.gitattributes) defines line-ending policy for checkout
+- [`check_text_encoding.py`](C:\Users\angpa\myProjects\Daily_Work\Skills_convert\scripts\check_text_encoding.py) validates tracked source files against the encoding policy
+
+Verification:
+
+```powershell
+python .\scripts\check_text_encoding.py
+```
+
 ## Notes
 
 - The Obsidian rules are intentionally generic. Adjust the preferred vault path or template conventions for your team.

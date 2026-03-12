@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$FolderPath,
     [Parameter(Mandatory = $true)]
@@ -21,6 +21,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 . (Join-Path $PSScriptRoot "OutlookCommon.ps1")
+Initialize-Utf8Output
 
 Ensure-Directory -Path $OutputRoot
 
@@ -132,7 +133,8 @@ foreach ($folder in $targetFolders) {
             $bodyContent = $item.Body
         }
 
-        Set-Content -LiteralPath $bodyPath -Value $bodyContent -Encoding UTF8
+        # Write text outputs explicitly so PowerShell host defaults do not fall back to cp949/ANSI.
+        Write-Utf8TextFile -Path $bodyPath -Value $bodyContent -WithBom
 
         $msgPath = $null
         if ($SaveMsg) {
@@ -177,7 +179,7 @@ foreach ($folder in $targetFolders) {
         }
 
         $metadataPath = Join-Path $messageDirectory "metadata.json"
-        $metadata | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $metadataPath -Encoding UTF8
+        Write-Utf8JsonFile -Path $metadataPath -Value $metadata -Depth 6
 
         $manifestRows.Add([PSCustomObject]@{
                 ReceivedTime = $receivedTime.ToString("s")
@@ -200,7 +202,7 @@ foreach ($folder in $targetFolders) {
 }
 
 if ($manifestRows.Count -gt 0) {
-    $manifestRows | Export-Csv -LiteralPath $manifestPath -NoTypeInformation -Encoding UTF8
+    Write-Utf8CsvFile -Path $manifestPath -Rows @($manifestRows) -WithBom
 }
 else {
     $manifestPath = $null

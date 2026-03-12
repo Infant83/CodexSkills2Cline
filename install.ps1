@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet("Global", "Project")]
     [string]$Scope = "Global",
     [string]$ProjectPath,

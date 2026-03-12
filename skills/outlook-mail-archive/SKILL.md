@@ -64,6 +64,7 @@ Files created per message:
 - `attachments\...`
 
 The export run also writes `manifest-<timestamp>.csv` at the output root.
+Text exports are written as UTF-8, and human-opened text files such as `message.md` and `manifest-*.csv` are written with a UTF-8 BOM for better Windows editor and Excel compatibility.
 
 ## Folder path notes
 

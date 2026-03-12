@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$StoreName,
     [int]$MaxDepth = 2,
     [switch]$IncludeItemCount,
@@ -9,6 +9,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 . (Join-Path $PSScriptRoot "OutlookCommon.ps1")
+Initialize-Utf8Output
 
 $namespace = New-OutlookNamespace
 $stores = @($namespace.Stores)

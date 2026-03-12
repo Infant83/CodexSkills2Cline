@@ -1,4 +1,4 @@
-Set-StrictMode -Version Latest
+﻿Set-StrictMode -Version Latest
 
 function New-OutlookNamespace {
     $marshalType = [System.Runtime.InteropServices.Marshal]
@@ -28,6 +28,77 @@ function Ensure-Directory {
     if (-not (Test-Path -LiteralPath $Path)) {
         New-Item -ItemType Directory -Path $Path -Force | Out-Null
     }
+}
+
+function Initialize-Utf8Output {
+    $utf8 = New-Utf8Encoding
+
+    try {
+        [Console]::InputEncoding = $utf8
+    }
+    catch {
+    }
+
+    try {
+        [Console]::OutputEncoding = $utf8
+    }
+    catch {
+    }
+
+    try {
+        $global:OutputEncoding = $utf8
+    }
+    catch {
+    }
+}
+
+function New-Utf8Encoding {
+    param(
+        [switch]$WithBom
+    )
+
+    return New-Object System.Text.UTF8Encoding($WithBom.IsPresent)
+}
+
+function Write-Utf8TextFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [AllowNull()]
+        [string]$Value,
+        [switch]$WithBom
+    )
+
+    $effectiveValue = if ($null -eq $Value) { "" } else { [string]$Value }
+    $encoding = New-Utf8Encoding -WithBom:$WithBom
+    [System.IO.File]::WriteAllText($Path, $effectiveValue, $encoding)
+}
+
+function Write-Utf8JsonFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [Parameter(Mandatory = $true)]
+        [object]$Value,
+        [int]$Depth = 5
+    )
+
+    $json = $Value | ConvertTo-Json -Depth $Depth
+    Write-Utf8TextFile -Path $Path -Value $json
+}
+
+function Write-Utf8CsvFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [Parameter(Mandatory = $true)]
+        [object[]]$Rows,
+        [switch]$WithBom
+    )
+
+    $csvLines = @($Rows | ConvertTo-Csv -NoTypeInformation)
+    $csvText = ($csvLines -join [Environment]::NewLine) + [Environment]::NewLine
+    Write-Utf8TextFile -Path $Path -Value $csvText -WithBom:$WithBom
 }
 
 function ConvertTo-SafeFileName {
