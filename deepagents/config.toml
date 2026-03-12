@@ -1,9 +1,8 @@
 [models]
-default = "qwen:Qwen3-Coder-480B-A35B-Instruct"
-recent = "qwen:Qwen3-Codex-480B-A35B-Instruct"
+default = "openai:Qwen3-Coder-480B-A35B-Instruct"
+recent = "openai:Qwen3-Codex-480B-A35B-Instruct"
 
-[models.providers.qwen]
-class_path = "langchain_openai:ChatOpenAI"
+[models.providers.openai]
 base_url = "http://10.116.240.101:8030/openai"
 api_key_env = "OPENAI_API_KEY"
 models = [

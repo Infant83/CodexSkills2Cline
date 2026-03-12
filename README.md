@@ -46,6 +46,7 @@ scripts/                 repo maintenance helpers
 ## Install
 
 The default installers install both Cline and DeepAgents together.
+When installing shared skills, the installer replaces any existing skill directory with the same name before copying the new version.
 
 ### Windows
 
@@ -137,12 +138,12 @@ The default DeepAgents agent name is `agent`. Override it with:
 
 This pack configures:
 
-- `default = "qwen:Qwen3-Coder-480B-A35B-Instruct"`
-- `recent = "qwen:Qwen3-Codex-480B-A35B-Instruct"`
-- a custom `qwen` provider pointing to the on-prem OpenAI-compatible endpoint at `http://10.116.240.101:8030/openai`
+- `default = "openai:Qwen3-Coder-480B-A35B-Instruct"`
+- `recent = "openai:Qwen3-Codex-480B-A35B-Instruct"`
+- the built-in `openai` provider pointed at the on-prem OpenAI-compatible endpoint `http://10.116.240.101:8030/openai`
 
-Because the provider name is a custom alias, the config uses `class_path = "langchain_openai:ChatOpenAI"`.
-If the DeepAgents environment cannot import that class, install `langchain-openai` in the same Python environment as `deepagents`.
+Because the endpoint is OpenAI-compatible, the config uses the standard `openai:` provider prefix instead of a custom alias.
+If the DeepAgents environment does not have the OpenAI provider dependency available, install `langchain-openai` in the same Python environment as `deepagents`.
 
 ## Verify
 

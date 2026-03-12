@@ -90,6 +90,33 @@ function Copy-DirectoryContents {
     }
 }
 
+function Copy-SkillDirectories {
+    param(
+        [string]$Source,
+        [string]$Target
+    )
+
+    Ensure-Directory -Path $Target
+
+    Get-ChildItem -LiteralPath $Source -Force | ForEach-Object {
+        $destination = Join-Path $Target $_.Name
+
+        if ($DryRun) {
+            if (Test-Path -LiteralPath $destination) {
+                Write-Host "[dry-run] remove $destination"
+            }
+            Write-Host "[dry-run] copy $($_.FullName) -> $destination"
+            return
+        }
+
+        if (Test-Path -LiteralPath $destination) {
+            Remove-Item -LiteralPath $destination -Recurse -Force
+        }
+
+        Copy-Item -LiteralPath $_.FullName -Destination $destination -Recurse -Force
+    }
+}
+
 function Copy-FileToTarget {
     param(
         [string]$Source,
@@ -104,27 +131,6 @@ function Copy-FileToTarget {
     }
 
     Copy-Item -LiteralPath $Source -Destination $Target -Force
-}
-
-function Remove-PathIfExists {
-    param([string]$Path)
-
-    if (-not (Test-Path -LiteralPath $Path)) {
-        return
-    }
-
-    if ($DryRun) {
-        Write-Host "[dry-run] remove $Path"
-        return
-    }
-
-    Remove-Item -LiteralPath $Path -Recurse -Force
-}
-
-function Remove-ObsoleteSkillArtifacts {
-    param([string]$SkillsRoot)
-
-    Remove-PathIfExists -Path (Join-Path $SkillsRoot "outlook-mail\scripts\outlook_mail.ps1")
 }
 
 function Install-ClinePack {
@@ -153,8 +159,7 @@ function Install-ClinePack {
 
     Copy-DirectoryContents -Source (Join-Path $sourceRoot "rules") -Target $managedRules
     Copy-DirectoryContents -Source (Join-Path $sourceRoot "workflows") -Target $managedWorkflows
-    Copy-DirectoryContents -Source $skillsSource -Target $managedSkills
-    Remove-ObsoleteSkillArtifacts -SkillsRoot $managedSkills
+    Copy-SkillDirectories -Source $skillsSource -Target $managedSkills
 
     Copy-DirectoryContents -Source (Join-Path $sourceRoot "rules") -Target $runtimeRules
     Copy-DirectoryContents -Source (Join-Path $sourceRoot "workflows") -Target $runtimeWorkflows
@@ -180,8 +185,7 @@ function Install-DeepAgentsPack {
 
     Copy-FileToTarget -Source (Join-Path $sourceRoot "config.toml") -Target (Join-Path $managedHome "config.toml")
     Copy-FileToTarget -Source (Join-Path $sourceRoot "agent\AGENTS.md") -Target (Join-Path $agentHome "AGENTS.md")
-    Copy-DirectoryContents -Source $skillsSource -Target $agentSkills
-    Remove-ObsoleteSkillArtifacts -SkillsRoot $agentSkills
+    Copy-SkillDirectories -Source $skillsSource -Target $agentSkills
 }
 
 $repoRoot = $PSScriptRoot

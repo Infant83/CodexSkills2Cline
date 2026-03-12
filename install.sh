@@ -98,6 +98,32 @@ copy_dir_contents() {
   cp -R "$source"/. "$target"/
 }
 
+copy_skill_directories() {
+  local source="$1"
+  local target="$2"
+
+  if [[ "$DRY_RUN" == "1" ]]; then
+    echo "[dry-run] mkdir -p $target"
+    for source_item in "$source"/*; do
+      local destination="$target/$(basename "$source_item")"
+      if [[ -e "$destination" ]]; then
+        echo "[dry-run] rm -rf $destination"
+      fi
+      echo "[dry-run] cp -R $source_item $destination"
+    done
+    return
+  fi
+
+  mkdir -p "$target"
+  for source_item in "$source"/*; do
+    local destination="$target/$(basename "$source_item")"
+    if [[ -e "$destination" ]]; then
+      rm -rf "$destination"
+    fi
+    cp -R "$source_item" "$destination"
+  done
+}
+
 copy_file_to_target() {
   local source="$1"
   local target="$2"
@@ -110,27 +136,6 @@ copy_file_to_target() {
 
   mkdir -p "$(dirname "$target")"
   cp "$source" "$target"
-}
-
-remove_path_if_exists() {
-  local target="$1"
-
-  if [[ ! -e "$target" ]]; then
-    return
-  fi
-
-  if [[ "$DRY_RUN" == "1" ]]; then
-    echo "[dry-run] rm -rf $target"
-    return
-  fi
-
-  rm -rf "$target"
-}
-
-remove_obsolete_skill_artifacts() {
-  local skills_root="$1"
-
-  remove_path_if_exists "$skills_root/outlook-mail/scripts/outlook_mail.ps1"
 }
 
 resolve_documents_root() {
@@ -166,8 +171,7 @@ install_cline_pack() {
 
   copy_dir_contents "$source_root/rules" "$managed_rules"
   copy_dir_contents "$source_root/workflows" "$managed_workflows"
-  copy_dir_contents "$skills_source" "$managed_skills"
-  remove_obsolete_skill_artifacts "$managed_skills"
+  copy_skill_directories "$skills_source" "$managed_skills"
   copy_dir_contents "$source_root/rules" "$runtime_rules"
   copy_dir_contents "$source_root/workflows" "$runtime_workflows"
 }
@@ -185,8 +189,7 @@ install_deepagents_pack() {
 
   copy_file_to_target "$source_root/config.toml" "$managed_home/config.toml"
   copy_file_to_target "$source_root/agent/AGENTS.md" "$agent_home/AGENTS.md"
-  copy_dir_contents "$skills_source" "$agent_skills"
-  remove_obsolete_skill_artifacts "$agent_skills"
+  copy_skill_directories "$skills_source" "$agent_skills"
 }
 
 if [[ "$TARGET" == "all" || "$TARGET" == "cline" ]]; then
