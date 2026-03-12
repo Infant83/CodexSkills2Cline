@@ -13,6 +13,8 @@ description: Work with DOCX files when reading, creating, or editing documents w
 
 ## Workflow
 
+If this skill is installed under DeepAgents, replace `~/.cline/skills` in the examples below with `~/.deepagents/skills`.
+
 1. Prefer visual review for layout, tables, diagrams, and pagination.
 2. Use `python-docx` for edits and structured creation.
 3. Re-render and inspect after meaningful changes.

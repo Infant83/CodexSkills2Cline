@@ -1,6 +1,8 @@
-# Cline On-Prem Starter Pack
+# Cline / DeepAgents On-Prem Starter Pack
 
-This folder packages a small Cline starter set for an on-prem environment.
+This folder packages a small Cline and DeepAgents starter set for an on-prem environment.
+Cline uses the full pack with rules, workflows, and skills.
+DeepAgents uses the bundled `skills/` set only.
 
 Included:
 
@@ -22,9 +24,9 @@ Excluded on purpose:
 
 ## Folder layout
 
-- `Rules/`: install to Cline rules
-- `Workflows/`: install to Cline workflows
-- `skills/`: install to Cline skills
+- `Rules/`: install to Cline rules only
+- `Workflows/`: install to Cline workflows only
+- `skills/`: install to Cline or DeepAgents skills
 - `examples/`: environment examples for internal tools
 
 ## Install
@@ -47,6 +49,18 @@ Project-local install into a repo:
 pwsh .\install.ps1 -Scope Project -ProjectPath C:\path\to\repo
 ```
 
+Global install for DeepAgents on Windows PowerShell:
+
+```powershell
+pwsh .\install.ps1 -Target DeepAgents -Scope Global
+```
+
+Project-local install for DeepAgents into a repo:
+
+```powershell
+pwsh .\install.ps1 -Target DeepAgents -Scope Project -ProjectPath C:\path\to\repo
+```
+
 Global install on Linux with PowerShell 7:
 
 ```bash
@@ -59,7 +73,21 @@ Project-local install on Linux with PowerShell 7:
 pwsh ./install.ps1 -Scope Project -ProjectPath /path/to/repo
 ```
 
+Global install for DeepAgents on Linux with PowerShell 7:
+
+```bash
+pwsh ./install.ps1 -Target DeepAgents -Scope Global
+```
+
+Project-local install for DeepAgents on Linux with PowerShell 7:
+
+```bash
+pwsh ./install.ps1 -Target DeepAgents -Scope Project -ProjectPath /path/to/repo
+```
+
 Manual install on Linux without PowerShell:
+
+Cline:
 
 ```bash
 mkdir -p "$HOME/Documents/Cline/Rules" "$HOME/Documents/Cline/Workflows" "$HOME/.cline/skills"
@@ -68,25 +96,51 @@ cp -R Workflows/. "$HOME/Documents/Cline/Workflows/"
 cp -R skills/. "$HOME/.cline/skills/"
 ```
 
+DeepAgents:
+
+```bash
+mkdir -p "$HOME/.deepagents/skills"
+cp -R skills/. "$HOME/.deepagents/skills/"
+```
+
 What the installer copies:
 
-- Global rules: `~/Documents/Cline/Rules`
-- Global workflows: `~/Documents/Cline/Workflows`
-- Global skills: `~/.cline/skills`
+Cline global targets:
+
+- Rules: `~/Documents/Cline/Rules`
+- Workflows: `~/Documents/Cline/Workflows`
+- Skills: `~/.cline/skills`
+
+DeepAgents global target:
+
+- Skills: `~/.deepagents/skills`
 
 Project mode copies to:
+
+Cline:
 
 - `<repo>\.clinerules`
 - `<repo>\.clinerules\workflows`
 - `<repo>\.cline\skills`
 
+DeepAgents:
+
+- `<repo>\.deepagents\skills`
+
 On Linux, the same layout resolves to:
+
+Cline:
 
 - `<repo>/.clinerules`
 - `<repo>/.clinerules/workflows`
 - `<repo>/.cline/skills`
 
+DeepAgents:
+
+- `<repo>/.deepagents/skills`
+
 The installer overwrites files with the same names, but it does not delete old files that are no longer present in this pack.
+For DeepAgents, the installer currently copies only `skills/` because this pack does not assume DeepAgents-specific rules or workflow directories.
 
 ## OpenProject setup
 
@@ -105,9 +159,9 @@ Set these variables in the shell or your company-approved secret manager:
 
 After installation:
 
-1. Restart or reload Cline.
-2. Confirm the rules appear in Cline.
-3. Confirm the skills appear in Cline.
+1. Restart or reload your client.
+2. For Cline, confirm the rules and skills appear in Cline.
+3. For DeepAgents, confirm the skills appear under the installed `~/.deepagents/skills` or project-local `.deepagents/skills` path.
 4. For OpenProject, test:
 
 ```powershell
@@ -134,6 +188,8 @@ powershell -STA -File "$HOME/.cline/skills/outlook-mail-archive/scripts/export_o
   -OutputRoot "$HOME\Documents\mail-archive" `
   -MaxItems 5
 ```
+
+If you installed for DeepAgents, replace `~/.cline/skills` in the commands above with `~/.deepagents/skills`.
 
 ## Outlook setup
 

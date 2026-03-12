@@ -1,4 +1,5 @@
 .cline/
+.deepagents/
 .clinerules/
 __pycache__/
 *.pyc

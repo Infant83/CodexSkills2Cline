@@ -8,6 +8,7 @@ description: Automate desktop Outlook on Windows to inspect received mail, expor
 ## Quick start
 
 - Use this skill on Windows with desktop Outlook installed and a signed-in profile.
+- If this skill is installed under DeepAgents, replace `~/.cline/skills` in the examples below with `~/.deepagents/skills`.
 - Prefer listing folders before exporting mail.
 - Default to read-only export. Do not move, delete, or mark messages unless the user explicitly asks.
 - Save each message into its own folder with metadata, body text, original `.msg`, and attachments.
