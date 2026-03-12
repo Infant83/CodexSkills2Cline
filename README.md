@@ -35,6 +35,12 @@ Global install on Windows PowerShell:
 pwsh .\install.ps1 -Scope Global
 ```
 
+Global install on Windows PowerShell when script execution is blocked by policy:
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File .\install.ps1 -Scope Global
+```
+
 Project-local install into a repo:
 
 ```powershell
