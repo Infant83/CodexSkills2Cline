@@ -188,8 +188,20 @@ Outbound mail safety rules in `outlook-mail`:
 
 - use `draft-message` or `send-message` only when the user explicitly asked for a mail-writing action in the current turn
 - if the user asked to write mail but did not explicitly ask to send it, create a draft instead
-- `hyun-jung.kim@lgdisplay.com` is the only recipient that does not require extra approval
+- the only no-extra-approval recipient is the detected self address `<username>@lgdisplay.com`
+- the installer prints the detected address after installation
+- if the detected address is wrong, set `OUTLOOK_MAIL_SELF_ADDRESS` to the actual company address before using `outlook-mail`
 - any other recipient must be explicitly approved before running the command with `--allow-recipient`
+
+Override examples:
+
+```powershell
+$env:OUTLOOK_MAIL_SELF_ADDRESS="actual.user@lgdisplay.com"
+```
+
+```bash
+export OUTLOOK_MAIL_SELF_ADDRESS="actual.user@lgdisplay.com"
+```
 
 ## Obsidian defaults
 

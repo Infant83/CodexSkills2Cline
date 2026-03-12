@@ -25,6 +25,36 @@ function Resolve-HomeRoot {
     throw "Could not resolve the user home directory."
 }
 
+function Resolve-PrimaryUsername {
+    param([string]$HomePath)
+
+    if ($env:USERNAME) {
+        return $env:USERNAME.Trim().ToLowerInvariant()
+    }
+
+    $leaf = Split-Path -Path $HomePath -Leaf
+    if ($leaf) {
+        return $leaf.Trim().ToLowerInvariant()
+    }
+
+    return ""
+}
+
+function Resolve-OutlookSelfAddress {
+    param([string]$HomePath)
+
+    if ($env:OUTLOOK_MAIL_SELF_ADDRESS) {
+        return $env:OUTLOOK_MAIL_SELF_ADDRESS.Trim().ToLowerInvariant()
+    }
+
+    $username = Resolve-PrimaryUsername -HomePath $HomePath
+    if (-not $username) {
+        return ""
+    }
+
+    return "$username@lgdisplay.com"
+}
+
 function Ensure-Directory {
     param([string]$Path)
 
@@ -148,4 +178,21 @@ if ($Target -in @("All", "DeepAgents")) {
 
 Write-Host ""
 Write-Host "Install complete."
+Write-Host ""
+$outlookSelfAddress = Resolve-OutlookSelfAddress -HomePath $resolvedHome
+if ($outlookSelfAddress) {
+    Write-Host "Outlook mail default self address: $outlookSelfAddress"
+    if ($env:OUTLOOK_MAIL_SELF_ADDRESS) {
+        Write-Host "  Source: OUTLOOK_MAIL_SELF_ADDRESS"
+    }
+    else {
+        Write-Host "  Source: current OS username + @lgdisplay.com"
+    }
+}
+else {
+    Write-Host "Outlook mail default self address: <not detected>"
+}
+Write-Host "If this does not match your actual company mailbox address, set OUTLOOK_MAIL_SELF_ADDRESS before using outlook-mail."
+Write-Host '  PowerShell example: $env:OUTLOOK_MAIL_SELF_ADDRESS="actual.user@lgdisplay.com"'
+Write-Host '  CMD example: set OUTLOOK_MAIL_SELF_ADDRESS=actual.user@lgdisplay.com'
 Write-Host "Restart or reload Cline and DeepAgents to pick up the updated files."

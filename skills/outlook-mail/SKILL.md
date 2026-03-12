@@ -12,7 +12,8 @@ description: Read, search, filter, extract, archive, draft, and send Outlook mai
 - The core logic is Python-based and requires `pywin32`.
 - Default to read-only commands unless the user explicitly asks to draft or send mail.
 - If the user asks to "write" an email but does not explicitly say to send it, create a draft instead of sending.
-- Draft or send mail without extra recipient confirmation only when every recipient is `hyun-jung.kim@lgdisplay.com`.
+- Draft or send mail without extra recipient confirmation only when every recipient matches the detected self address `<username>@lgdisplay.com`.
+- The default self address is derived from the current OS username. If that is wrong, set `OUTLOOK_MAIL_SELF_ADDRESS` before using `draft-message` or `send-message`.
 - For any other `To`, `CC`, or `BCC` recipient, ask the user first and only proceed after explicit approval.
 
 ## Dependency
@@ -96,28 +97,34 @@ powershell -File "$HOME/.cline/skills/outlook-mail/scripts/outlook_mail.ps1" exp
 
 ## Draft and send mail
 
-Create a draft for the allowed default recipient:
+Create a draft for the detected default recipient:
 
 ```powershell
 powershell -File "$HOME/.cline/skills/outlook-mail/scripts/outlook_mail.ps1" draft-message `
-  --to hyun-jung.kim@lgdisplay.com `
+  --to "${env:USERNAME}@lgdisplay.com" `
   --subject "Follow-up" `
   --body "Please review the attached note." `
   --explicit-write-request
+```
+
+If the detected address is wrong for your mailbox alias, set an override first:
+
+```powershell
+$env:OUTLOOK_MAIL_SELF_ADDRESS="actual.user@lgdisplay.com"
 ```
 
 Send mail only when the user explicitly asked to send now:
 
 ```powershell
 powershell -File "$HOME/.cline/skills/outlook-mail/scripts/outlook_mail.ps1" send-message `
-  --to hyun-jung.kim@lgdisplay.com `
+  --to "${env:USERNAME}@lgdisplay.com" `
   --subject "Approved update" `
   --body "The update is complete." `
   --explicit-write-request `
   --confirm-send
 ```
 
-For any recipient outside `hyun-jung.kim@lgdisplay.com`, ask the user first and then include an approval flag for each approved address:
+For any recipient outside the detected self address, ask the user first and then include an approval flag for each approved address:
 
 ```powershell
 powershell -File "$HOME/.cline/skills/outlook-mail/scripts/outlook_mail.ps1" draft-message `

@@ -11,7 +11,8 @@ from datetime import datetime
 from email.utils import parseaddr
 from pathlib import Path
 
-AUTO_ALLOWED_WRITE_RECIPIENTS = {"hyun-jung.kim@lgdisplay.com"}
+COMPANY_EMAIL_DOMAIN = "lgdisplay.com"
+SELF_ADDRESS_OVERRIDE_ENV = "OUTLOOK_MAIL_SELF_ADDRESS"
 DEFAULT_FOLDER_MAP = {
     "deleted": 3,
     "deleteditems": 3,
@@ -37,6 +38,38 @@ def configure_stdio():
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
+
+
+def resolve_local_username():
+    for key in ("USERNAME", "USER"):
+        value = safe_text(os.environ.get(key, "")).strip().lower()
+        if value:
+            return value
+
+    home_name = safe_text(Path.home().name).strip().lower()
+    if home_name:
+        return home_name
+    return ""
+
+
+def resolve_auto_allowed_self_address():
+    override = normalize_email_address(os.environ.get(SELF_ADDRESS_OVERRIDE_ENV, ""))
+    if override:
+        return override
+
+    username = resolve_local_username()
+    if not username:
+        return ""
+    if not re.fullmatch(r"[a-z0-9._-]+", username):
+        return ""
+    return f"{username}@{COMPANY_EMAIL_DOMAIN}"
+
+
+def resolve_auto_allowed_write_recipients():
+    address = resolve_auto_allowed_self_address()
+    if not address:
+        return set()
+    return {address}
 
 
 def parse_datetime_arg(value):
@@ -577,6 +610,7 @@ def ensure_write_policy(args):
         normalize_email_address(value)
         for value in normalize_recipients(getattr(args, "allow_recipient", []))
     }
+    auto_allowed_recipients = resolve_auto_allowed_write_recipients()
     blocked = []
 
     for field_name, values in recipients.items():
@@ -585,16 +619,19 @@ def ensure_write_policy(args):
             if not normalized or "@" not in normalized:
                 raise RuntimeError(f"Invalid {field_name.upper()} recipient: {value}")
             if (
-                normalized not in AUTO_ALLOWED_WRITE_RECIPIENTS
+                normalized not in auto_allowed_recipients
                 and normalized not in approved
             ):
                 blocked.append(normalized)
 
     if blocked:
         blocked_text = ", ".join(sorted(set(blocked)))
+        auto_allowed_text = ", ".join(sorted(auto_allowed_recipients)) or "<not detected>"
         raise RuntimeError(
             "Recipient approval required before drafting or sending mail to: "
-            f"{blocked_text}. Re-run with --allow-recipient only after the user explicitly approves them."
+            f"{blocked_text}. Auto-allowed self address: {auto_allowed_text}. "
+            f"If detection is wrong, set {SELF_ADDRESS_OVERRIDE_ENV} and re-run with "
+            "--allow-recipient only after the user explicitly approves non-self recipients."
         )
 
     return {
@@ -602,6 +639,7 @@ def ensure_write_policy(args):
         "cc": recipients["cc"],
         "bcc": recipients["bcc"],
         "approved": sorted(approved),
+        "auto_allowed": sorted(auto_allowed_recipients),
     }
 
 
@@ -647,6 +685,7 @@ def outgoing_result(mail_item, action, policy, attached_files):
         "attachment_count": int(getattr(mail_item.Attachments, "Count", 0) or 0),
         "attachment_paths": attached_files,
         "approved_recipients": policy["approved"],
+        "auto_allowed_recipients": policy["auto_allowed"],
     }
 
 

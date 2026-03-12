@@ -7,6 +7,30 @@ HOME_ROOT="${HOME:-}"
 DEEPAGENTS_AGENT_NAME="agent"
 DRY_RUN=0
 
+resolve_primary_username() {
+  if [[ -n "${USERNAME:-}" ]]; then
+    printf '%s\n' "${USERNAME,,}"
+    return
+  fi
+
+  basename "$HOME_ROOT" | tr '[:upper:]' '[:lower:]'
+}
+
+resolve_outlook_self_address() {
+  if [[ -n "${OUTLOOK_MAIL_SELF_ADDRESS:-}" ]]; then
+    printf '%s\n' "${OUTLOOK_MAIL_SELF_ADDRESS,,}"
+    return
+  fi
+
+  local username
+  username="$(resolve_primary_username)"
+  if [[ -z "$username" ]]; then
+    return
+  fi
+
+  printf '%s\n' "${username}@lgdisplay.com"
+}
+
 usage() {
   cat <<'EOF'
 Usage: ./install.sh [--target all|cline|deepagents] [--home-root PATH] [--deepagents-agent-name NAME] [--dry-run]
@@ -152,4 +176,18 @@ fi
 
 echo
 echo "Install complete."
+echo
+OUTLOOK_SELF_ADDRESS="$(resolve_outlook_self_address)"
+if [[ -n "$OUTLOOK_SELF_ADDRESS" ]]; then
+  echo "Outlook mail default self address: $OUTLOOK_SELF_ADDRESS"
+  if [[ -n "${OUTLOOK_MAIL_SELF_ADDRESS:-}" ]]; then
+    echo "  Source: OUTLOOK_MAIL_SELF_ADDRESS"
+  else
+    echo "  Source: current OS username + @lgdisplay.com"
+  fi
+else
+  echo "Outlook mail default self address: <not detected>"
+fi
+echo "If this does not match your actual company mailbox address, set OUTLOOK_MAIL_SELF_ADDRESS before using outlook-mail."
+echo '  Bash example: export OUTLOOK_MAIL_SELF_ADDRESS="actual.user@lgdisplay.com"'
 echo "Restart or reload Cline and DeepAgents to pick up the updated files."
