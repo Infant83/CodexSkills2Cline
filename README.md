@@ -11,6 +11,7 @@ The pack is designed for an on-prem environment. Shared skills stay self-contain
 ## Included
 
 - Shared skills:
+  - `aims-gitlab`
   - `openproject`
   - `doc`
   - `pdf`
@@ -168,13 +169,23 @@ python "$HOME/.cline/skills/openproject/scripts/openproject_api.py" whoami
 
 The helper uses Basic auth with `apikey:<OPENPROJECT_API_KEY>` encoded as Base64.
 
-5. For Jupyter scaffolding, test:
+5. For AIMS GitLab, test:
+
+```powershell
+$env:GITLAB_BASE_URL="https://aims.example.com"
+$env:GITLAB_TOKEN="your-user-token"
+python "$HOME/.cline/skills/aims-gitlab/scripts/aims_gitlab_api.py" whoami
+```
+
+`GITHUB_BASE_URL` is also accepted as a compatibility fallback if the local environment already uses that name for the same on-prem GitLab host.
+
+6. For Jupyter scaffolding, test:
 
 ```powershell
 python "$HOME/.cline/skills/jupyter-notebook/scripts/new_notebook.py" --help
 ```
 
-6. For Python-first Outlook mail access on Windows:
+7. For Python-first Outlook mail access on Windows:
 
 ```powershell
 python -m pip install pywin32
