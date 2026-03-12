@@ -16,6 +16,8 @@ TEXT_RULES = {
     ".psd1": {"bom": True, "label": "UTF-8 with BOM"},
     ".psm1": {"bom": True, "label": "UTF-8 with BOM"},
     ".py": {"bom": False, "label": "UTF-8"},
+    ".sh": {"bom": False, "label": "UTF-8"},
+    ".toml": {"bom": False, "label": "UTF-8"},
     ".txt": {"bom": False, "label": "UTF-8"},
     ".yaml": {"bom": False, "label": "UTF-8"},
     ".yml": {"bom": False, "label": "UTF-8"},

@@ -7,7 +7,7 @@ description: Work with internal OpenProject through the REST API using OPENPROJE
 
 ## Quick start
 
-- If this skill is installed under DeepAgents, replace `~/.cline/skills` in the examples below with `~/.deepagents/skills`.
+- If this skill is installed under DeepAgents, replace `~/.cline/skills` in the examples below with `~/.deepagents/agent/skills`.
 - Require `OPENPROJECT_BASE_URL` and `OPENPROJECT_API_KEY` before calling the API.
 - Use the bundled helper at `$HOME/.cline/skills/openproject/scripts/openproject_api.py` for OpenProject access.
 - Accept `OPENPROJECT_BASE_URL` as either the instance root or the `/api/v3` root. The helper normalizes both forms.

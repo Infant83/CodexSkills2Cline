@@ -1,15 +1,29 @@
 ﻿param(
-    [ValidateSet("Global", "Project")]
-    [string]$Scope = "Global",
-    [ValidateSet("Cline", "DeepAgents")]
-    [string]$Target = "Cline",
-    [string]$ProjectPath,
-    [string]$DeepAgentsHome,
+    [ValidateSet("All", "Cline", "DeepAgents")]
+    [string]$Target = "All",
+    [string]$HomeRoot,
+    [string]$DeepAgentsAgentName = "agent",
     [switch]$DryRun
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+function Resolve-HomeRoot {
+    if ($HomeRoot) {
+        return $HomeRoot
+    }
+
+    if ($env:USERPROFILE) {
+        return $env:USERPROFILE
+    }
+
+    if ($HOME) {
+        return $HOME
+    }
+
+    throw "Could not resolve the user home directory."
+}
 
 function Ensure-Directory {
     param([string]$Path)
@@ -46,68 +60,92 @@ function Copy-DirectoryContents {
     }
 }
 
-$sourceRoot = $PSScriptRoot
-$rulesSource = Join-Path $sourceRoot "Rules"
-$workflowsSource = Join-Path $sourceRoot "Workflows"
-$skillsSource = Join-Path $sourceRoot "skills"
+function Copy-FileToTarget {
+    param(
+        [string]$Source,
+        [string]$Target
+    )
+
+    Ensure-Directory -Path (Split-Path -Parent $Target)
+
+    if ($DryRun) {
+        Write-Host "[dry-run] copy $Source -> $Target"
+        return
+    }
+
+    Copy-Item -LiteralPath $Source -Destination $Target -Force
+}
+
+function Install-ClinePack {
+    param(
+        [string]$RepoRoot,
+        [string]$HomePath,
+        [string]$DocumentsPath
+    )
+
+    $sourceRoot = Join-Path $RepoRoot "cline"
+    $skillsSource = Join-Path $RepoRoot "skills"
+
+    $managedHome = Join-Path $HomePath ".cline"
+    $managedRules = Join-Path $managedHome "rules"
+    $managedWorkflows = Join-Path $managedHome "workflows"
+    $managedSkills = Join-Path $managedHome "skills"
+
+    $runtimeRoot = Join-Path $DocumentsPath "Cline"
+    $runtimeRules = Join-Path $runtimeRoot "Rules"
+    $runtimeWorkflows = Join-Path $runtimeRoot "Workflows"
+
+    Write-Host "Installing Cline pack"
+    Write-Host "  Managed home: $managedHome"
+    Write-Host "  Runtime rules: $runtimeRules"
+    Write-Host "  Runtime workflows: $runtimeWorkflows"
+
+    Copy-DirectoryContents -Source (Join-Path $sourceRoot "rules") -Target $managedRules
+    Copy-DirectoryContents -Source (Join-Path $sourceRoot "workflows") -Target $managedWorkflows
+    Copy-DirectoryContents -Source $skillsSource -Target $managedSkills
+
+    Copy-DirectoryContents -Source (Join-Path $sourceRoot "rules") -Target $runtimeRules
+    Copy-DirectoryContents -Source (Join-Path $sourceRoot "workflows") -Target $runtimeWorkflows
+}
+
+function Install-DeepAgentsPack {
+    param(
+        [string]$RepoRoot,
+        [string]$HomePath,
+        [string]$AgentName
+    )
+
+    $sourceRoot = Join-Path $RepoRoot "deepagents"
+    $skillsSource = Join-Path $RepoRoot "skills"
+
+    $managedHome = Join-Path $HomePath ".deepagents"
+    $agentHome = Join-Path $managedHome $AgentName
+    $agentSkills = Join-Path $agentHome "skills"
+
+    Write-Host "Installing DeepAgents pack"
+    Write-Host "  Managed home: $managedHome"
+    Write-Host "  Agent home: $agentHome"
+
+    Copy-FileToTarget -Source (Join-Path $sourceRoot "config.toml") -Target (Join-Path $managedHome "config.toml")
+    Copy-FileToTarget -Source (Join-Path $sourceRoot "agent\AGENTS.md") -Target (Join-Path $agentHome "AGENTS.md")
+    Copy-DirectoryContents -Source $skillsSource -Target $agentSkills
+}
+
+$repoRoot = $PSScriptRoot
+$resolvedHome = Resolve-HomeRoot
 $documentsRoot = [Environment]::GetFolderPath("MyDocuments")
-
-if (-not $DeepAgentsHome) {
-    $DeepAgentsHome = Join-Path $HOME ".deepagents"
+if (-not $documentsRoot) {
+    $documentsRoot = Join-Path $resolvedHome "Documents"
 }
 
-if ($Target -eq "Cline") {
-    if ($Scope -eq "Global") {
-        $rulesTarget = Join-Path (Join-Path $documentsRoot "Cline") "Rules"
-        $workflowsTarget = Join-Path (Join-Path $documentsRoot "Cline") "Workflows"
-        $skillsTarget = Join-Path (Join-Path $HOME ".cline") "skills"
-    }
-    else {
-        if (-not $ProjectPath) {
-            throw "Project mode requires -ProjectPath."
-        }
-
-        $resolvedProjectPath = (Resolve-Path -LiteralPath $ProjectPath).Path
-        $rulesTarget = Join-Path $resolvedProjectPath ".clinerules"
-        $workflowsTarget = Join-Path $rulesTarget "workflows"
-        $skillsTarget = Join-Path (Join-Path $resolvedProjectPath ".cline") "skills"
-    }
-}
-else {
-    if ($Scope -eq "Global") {
-        $skillsTarget = Join-Path $DeepAgentsHome "skills"
-    }
-    else {
-        if (-not $ProjectPath) {
-            throw "Project mode requires -ProjectPath."
-        }
-
-        $resolvedProjectPath = (Resolve-Path -LiteralPath $ProjectPath).Path
-        $skillsTarget = Join-Path (Join-Path $resolvedProjectPath ".deepagents") "skills"
-    }
+if ($Target -in @("All", "Cline")) {
+    Install-ClinePack -RepoRoot $repoRoot -HomePath $resolvedHome -DocumentsPath $documentsRoot
 }
 
-Write-Host "Installing $Target pack"
-Write-Host "  Scope: $Scope"
-Write-Host "  Skills target: $skillsTarget"
-
-if ($Target -eq "Cline") {
-    Write-Host "  Rules target: $rulesTarget"
-    Write-Host "  Workflows target: $workflowsTarget"
-    Copy-DirectoryContents -Source $rulesSource -Target $rulesTarget
-    Copy-DirectoryContents -Source $workflowsSource -Target $workflowsTarget
+if ($Target -in @("All", "DeepAgents")) {
+    Install-DeepAgentsPack -RepoRoot $repoRoot -HomePath $resolvedHome -AgentName $DeepAgentsAgentName
 }
-else {
-    Write-Host "  DeepAgents install copies skills only."
-}
-
-Copy-DirectoryContents -Source $skillsSource -Target $skillsTarget
 
 Write-Host ""
 Write-Host "Install complete."
-if ($Target -eq "Cline") {
-    Write-Host "Restart or reload Cline to pick up rules, workflows, and skills."
-}
-else {
-    Write-Host "Restart or reload DeepAgents to pick up installed skills."
-}
+Write-Host "Restart or reload Cline and DeepAgents to pick up the updated files."

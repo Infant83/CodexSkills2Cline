@@ -1,20 +1,28 @@
 # Cline / DeepAgents On-Prem Starter Pack
 
-This folder packages a small Cline and DeepAgents starter set for an on-prem environment.
-Cline uses the full pack with rules, workflows, and skills.
-DeepAgents uses the bundled `skills/` set only.
+This repository is split into three layers:
 
-Included:
+- `skills/`: shared skills reused by both Cline and DeepAgents
+- `cline/`: Cline-only rules and workflows
+- `deepagents/`: DeepAgents-only defaults such as `AGENTS.md` and `config.toml`
 
-- Global or project-local Cline rules
-- Two reusable workflows
-- Six local-first skills:
+The pack is designed for an on-prem environment. Shared skills stay self-contained, while agent-specific behavior is separated by client.
+
+## Included
+
+- Shared skills:
   - `openproject`
   - `doc`
   - `pdf`
   - `spreadsheet`
   - `jupyter-notebook`
-  - `outlook-mail-archive`
+  - `outlook-mail`
+- Cline-only assets:
+  - global rules
+  - reusable workflows
+- DeepAgents-only assets:
+  - `AGENTS.md`
+  - `config.toml`
 
 Excluded on purpose:
 
@@ -22,146 +30,127 @@ Excluded on purpose:
 - `hwpx`
 - NotebookLM, Genspark, and other external-service-heavy skills
 
-## Folder layout
+## Repository layout
 
-- `Rules/`: install to Cline rules only
-- `Workflows/`: install to Cline workflows only
-- `skills/`: install to Cline or DeepAgents skills
-- `examples/`: environment examples for internal tools
+```text
+skills/                  shared skills for both agents
+cline/rules/             Cline-only rule files
+cline/workflows/         Cline-only workflow files
+deepagents/config.toml   DeepAgents model/provider defaults
+deepagents/agent/AGENTS.md
+                         DeepAgents always-on instructions
+examples/                internal environment examples
+scripts/                 repo maintenance helpers
+```
 
 ## Install
 
-Global install on Windows PowerShell:
+The default installers install both Cline and DeepAgents together.
+
+### Windows
+
+Recommended:
 
 ```powershell
-pwsh .\install.ps1 -Scope Global
+.\install.cmd
 ```
 
-Global install on Windows PowerShell when script execution is blocked by policy:
+PowerShell entry point with explicit execution-policy bypass:
 
 ```powershell
-powershell.exe -ExecutionPolicy Bypass -File .\install.ps1 -Scope Global
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-Project-local install into a repo:
+Install only one side when needed:
 
 ```powershell
-pwsh .\install.ps1 -Scope Project -ProjectPath C:\path\to\repo
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -Target Cline
 ```
-
-Global install for DeepAgents on Windows PowerShell:
 
 ```powershell
-pwsh .\install.ps1 -Target DeepAgents -Scope Global
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -Target DeepAgents
 ```
 
-Project-local install for DeepAgents into a repo:
+If you use a non-default DeepAgents agent name:
 
 ```powershell
-pwsh .\install.ps1 -Target DeepAgents -Scope Project -ProjectPath C:\path\to\repo
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -DeepAgentsAgentName my-agent
 ```
 
-Global install on Linux with PowerShell 7:
+### Linux
+
+Recommended:
 
 ```bash
-pwsh ./install.ps1 -Scope Global
+bash ./install.sh
 ```
 
-Project-local install on Linux with PowerShell 7:
+Install only one side when needed:
 
 ```bash
-pwsh ./install.ps1 -Scope Project -ProjectPath /path/to/repo
+bash ./install.sh --target cline
 ```
-
-Global install for DeepAgents on Linux with PowerShell 7:
 
 ```bash
-pwsh ./install.ps1 -Target DeepAgents -Scope Global
+bash ./install.sh --target deepagents
 ```
 
-Project-local install for DeepAgents on Linux with PowerShell 7:
+If you use a non-default DeepAgents agent name:
 
 ```bash
-pwsh ./install.ps1 -Target DeepAgents -Scope Project -ProjectPath /path/to/repo
+bash ./install.sh --deepagents-agent-name my-agent
 ```
 
-Manual install on Linux without PowerShell:
+## Installed locations
 
-Cline:
+### Cline
 
-```bash
-mkdir -p "$HOME/Documents/Cline/Rules" "$HOME/Documents/Cline/Workflows" "$HOME/.cline/skills"
-cp -R Rules/. "$HOME/Documents/Cline/Rules/"
-cp -R Workflows/. "$HOME/Documents/Cline/Workflows/"
-cp -R skills/. "$HOME/.cline/skills/"
-```
+Managed copies:
 
-DeepAgents:
+- `~/.cline/rules`
+- `~/.cline/workflows`
+- `~/.cline/skills`
 
-```bash
-mkdir -p "$HOME/.deepagents/skills"
-cp -R skills/. "$HOME/.deepagents/skills/"
-```
+Runtime sync targets:
 
-What the installer copies:
+- `~/Documents/Cline/Rules`
+- `~/Documents/Cline/Workflows`
 
-Cline global targets:
+The installer keeps a managed copy under `~/.cline` and also syncs rules/workflows into the global Cline runtime directories.
 
-- Rules: `~/Documents/Cline/Rules`
-- Workflows: `~/Documents/Cline/Workflows`
-- Skills: `~/.cline/skills`
+### DeepAgents
 
-DeepAgents global target:
+Managed copies:
 
-- Skills: `~/.deepagents/skills`
+- `~/.deepagents/config.toml`
+- `~/.deepagents/agent/AGENTS.md`
+- `~/.deepagents/agent/skills`
 
-Project mode copies to:
+The default DeepAgents agent name is `agent`. Override it with:
 
-Cline:
+- PowerShell: `-DeepAgentsAgentName`
+- Bash: `--deepagents-agent-name`
 
-- `<repo>\.clinerules`
-- `<repo>\.clinerules\workflows`
-- `<repo>\.cline\skills`
+## DeepAgents config
 
-DeepAgents:
+`deepagents/config.toml` is intended to replace `~/.deepagents/config.toml`.
 
-- `<repo>\.deepagents\skills`
+This pack configures:
 
-On Linux, the same layout resolves to:
+- `default = "qwen:Qwen3-Coder-480B-A35B-Instruct"`
+- `recent = "qwen:Qwen3-Codex-480B-A35B-Instruct"`
+- a custom `qwen` provider pointing to the on-prem OpenAI-compatible endpoint at `http://10.116.240.101:8030/openai`
 
-Cline:
-
-- `<repo>/.clinerules`
-- `<repo>/.clinerules/workflows`
-- `<repo>/.cline/skills`
-
-DeepAgents:
-
-- `<repo>/.deepagents/skills`
-
-The installer overwrites files with the same names, but it does not delete old files that are no longer present in this pack.
-For DeepAgents, the installer currently copies only `skills/` because this pack does not assume DeepAgents-specific rules or workflow directories.
-
-## OpenProject setup
-
-Copy the example file and set your internal values:
-
-```powershell
-Copy-Item .\examples\openproject.env.example .\openproject.env
-```
-
-Set these variables in the shell or your company-approved secret manager:
-
-- `OPENPROJECT_BASE_URL`
-- `OPENPROJECT_API_KEY`
+Because the provider name is a custom alias, the config uses `class_path = "langchain_openai.ChatOpenAI"`.
+If the DeepAgents environment cannot import that class, install `langchain-openai` in the same Python environment as `deepagents`.
 
 ## Verify
 
 After installation:
 
-1. Restart or reload your client.
-2. For Cline, confirm the rules and skills appear in Cline.
-3. For DeepAgents, confirm the skills appear under the installed `~/.deepagents/skills` or project-local `.deepagents/skills` path.
+1. Restart or reload both clients.
+2. For Cline, confirm rules and workflows appear after the global sync.
+3. For DeepAgents, confirm `~/.deepagents/config.toml`, `~/.deepagents/agent/AGENTS.md`, and `~/.deepagents/agent/skills` exist.
 4. For OpenProject, test:
 
 ```powershell
@@ -174,44 +163,47 @@ python "$HOME/.cline/skills/openproject/scripts/openproject_api.py" whoami
 python "$HOME/.cline/skills/jupyter-notebook/scripts/new_notebook.py" --help
 ```
 
-6. For Outlook archiving on Windows, test:
+6. For Python-first Outlook mail access on Windows:
 
 ```powershell
-powershell -STA -File "$HOME/.cline/skills/outlook-mail-archive/scripts/list_outlook_folders.ps1" -MaxDepth 1
+python -m pip install pywin32
+powershell -File "$HOME/.cline/skills/outlook-mail/scripts/outlook_mail.ps1" list-folders --max-depth 1
 ```
 
-7. To export a small inbox sample:
-
-```powershell
-powershell -STA -File "$HOME/.cline/skills/outlook-mail-archive/scripts/export_outlook_mail.ps1" `
-  -FolderPath Inbox `
-  -OutputRoot "$HOME\Documents\mail-archive" `
-  -MaxItems 5
-```
-
-If you installed for DeepAgents, replace `~/.cline/skills` in the commands above with `~/.deepagents/skills`.
+If you are verifying the DeepAgents-installed copy, replace `~/.cline/skills` with `~/.deepagents/agent/skills`.
 
 ## Outlook setup
 
-This skill is Windows-only and expects:
+The Outlook skills are Windows-only and expect:
 
-- Desktop Outlook installed
-- At least one mailbox profile already signed in
-- Local permission to let Outlook COM read messages and save attachments
+- desktop Outlook installed
+- at least one mailbox profile already signed in
+- local permission to let Outlook COM read messages and save attachments
+- `pywin32` installed for the Python-first `outlook-mail` skill
 
 If the folder alias does not work because of a localized mailbox, run the folder listing command first and reuse the exact reported folder path.
-If you invoke the scripts from PowerShell 7 or another host, call them through `powershell.exe -STA -File ...` so Outlook COM runs in the expected apartment model.
+`outlook-mail` is Python-first and initializes COM inside Python, so the bundled `outlook_mail.ps1` wrapper does not require `-STA`.
 
-## Obsidian path setup
+Outbound mail safety rules in `outlook-mail`:
 
-If your Obsidian vault location is not the default, set these variables in the shell or your approved environment loader:
+- use `draft-message` or `send-message` only when the user explicitly asked for a mail-writing action in the current turn
+- if the user asked to write mail but did not explicitly ask to send it, create a draft instead
+- `hyun-jung.kim@lgdisplay.com` is the only recipient that does not require extra approval
+- any other recipient must be explicitly approved before running the command with `--allow-recipient`
 
-```powershell
-$env:OBSIDIAN_VAULT="C:\path\to\vault"
-$env:OBSIDIAN_INBOX="C:\path\to\vault\00. Inbox"
-```
+## Obsidian defaults
 
-The included rules and workflows prefer `OBSIDIAN_VAULT` and `OBSIDIAN_INBOX` when they are present, then fall back to `~/Obsidian_Vault` and `~/Obsidian_Vault/00. Inbox`.
+The Cline rules and the DeepAgents `AGENTS.md` both apply the same Obsidian defaults:
+
+- prefer `OBSIDIAN_VAULT` and `OBSIDIAN_INBOX` when they exist
+- otherwise fall back to `~/Obsidian_Vault` and `~/Obsidian_Vault/00. Inbox`
+- discover vault guidance in this order:
+  - `00_README_시작하기*`
+  - `AGENTS*`
+  - `START_HERE*`
+  - `90. Settings/*`
+  - `Indexes/*`
+  - `Templates/*`
 
 ## Encoding note for on-prem Windows
 
@@ -227,23 +219,23 @@ The bundled Python scripts also reconfigure `stdout` and `stderr` to UTF-8 where
 Repository encoding policy:
 
 - PowerShell source files (`*.ps1`, `*.psm1`, `*.psd1`) should be saved as `UTF-8 with BOM`
-- Python, Markdown, JSON, YAML, `.env`, and other text source files should be saved as `UTF-8`
-- The Outlook mail archive skill writes exported `message.md` and `manifest-*.csv` as UTF-8 with BOM for better Windows compatibility
+- shell scripts, Python, Markdown, JSON, TOML, YAML, `.env`, and other text source files should be saved as `UTF-8`
+- the Python-first Outlook mail skill writes exported `message.md` or `message.txt` and `manifest-*.csv` as UTF-8 with BOM for better Windows compatibility
 - `git clone`, `git pull`, Linux `cp`, `scp`, and `rsync` do not transcode encodings; they preserve the bytes already stored in the repo
 
-Repository safeguards added in this pack:
+Repository safeguards:
 
 - [`.editorconfig`](C:\Users\angpa\myProjects\Daily_Work\Skills_convert\.editorconfig) defines editor save defaults
-- [`.gitattributes`](C:\Users\angpa\myProjects\Daily_Work\Skills_convert\.gitattributes) defines line-ending policy for checkout
 - [`check_text_encoding.py`](C:\Users\angpa\myProjects\Daily_Work\Skills_convert\scripts\check_text_encoding.py) validates tracked source files against the encoding policy
 
 Verification:
 
 ```powershell
-python .\scripts\check_text_encoding.py
+python .\scripts\check_text_encoding.py install.ps1 install.cmd install.sh deepagents\config.toml deepagents\agent\AGENTS.md skills
 ```
 
 ## Notes
 
-- The Obsidian rules are intentionally generic. Adjust the preferred vault path or template conventions for your team.
-- The OpenProject skill is sanitized for internal reuse. It does not contain user-specific URLs or credentials.
+- The pack intentionally keeps shared skills outside the agent-specific folders.
+- Cline gets separate rules/workflows because it has first-class support for them.
+- DeepAgents gets `AGENTS.md` plus shared skills instead of a separate workflow directory.

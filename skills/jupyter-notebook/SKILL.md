@@ -25,7 +25,7 @@ Use this skill to create clean, reproducible notebooks for two primary modes:
 
 ## Quick start
 
-If this skill is installed under DeepAgents, replace `~/.cline/skills` in the examples below with `~/.deepagents/skills`.
+If this skill is installed under DeepAgents, replace `~/.cline/skills` in the examples below with `~/.deepagents/agent/skills`.
 
 Use the bundled helper:
 
