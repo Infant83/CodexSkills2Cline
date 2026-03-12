@@ -158,6 +158,16 @@ After installation:
 python "$HOME/.cline/skills/openproject/scripts/openproject_api.py" whoami
 ```
 
+OpenProject prerequisites:
+
+```powershell
+$env:OPENPROJECT_BASE_URL="https://example.test/openproject"
+$env:OPENPROJECT_API_KEY="your-api-key"
+python "$HOME/.cline/skills/openproject/scripts/openproject_api.py" whoami
+```
+
+The helper uses Basic auth with `apikey:<OPENPROJECT_API_KEY>` encoded as Base64.
+
 5. For Jupyter scaffolding, test:
 
 ```powershell

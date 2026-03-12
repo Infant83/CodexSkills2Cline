@@ -18,11 +18,22 @@ def configure_stdio():
             stream.reconfigure(encoding="utf-8", errors="replace")
 
 
+def missing_env_message(name, description):
+    return (
+        f"Missing {name}. Set it before running the OpenProject helper. "
+        f"{description} "
+        f'PowerShell: $env:{name}="..." '
+        f'Bash: export {name}="..."'
+    )
+
+
 def normalize_api_root(base_url):
     if not base_url:
         raise RuntimeError(
-            "Missing OPENPROJECT_BASE_URL. Set it to the OpenProject instance root "
-            "or the /api/v3 endpoint."
+            missing_env_message(
+                "OPENPROJECT_BASE_URL",
+                "Use the OpenProject instance root or the /api/v3 endpoint.",
+            )
         )
     base = base_url.strip().rstrip("/")
     if base.lower().endswith(API_SUFFIX):
@@ -72,7 +83,7 @@ def build_url(api_root, path="", params=None):
 
 
 def basic_auth_header(api_key):
-    token = base64.b64encode(f"apikey:{api_key}".encode("ascii")).decode("ascii")
+    token = base64.b64encode(f"apikey:{api_key}".encode("utf-8")).decode("ascii")
     return f"Basic {token}"
 
 
@@ -100,7 +111,12 @@ def parse_key_value_pairs(items, option_name):
 class OpenProjectClient:
     def __init__(self, base_url, api_key):
         if not api_key:
-            raise RuntimeError("Missing OPENPROJECT_API_KEY.")
+            raise RuntimeError(
+                missing_env_message(
+                    "OPENPROJECT_API_KEY",
+                    "Use the OpenProject API key that will be sent as Basic auth with 'apikey:<key>'.",
+                )
+            )
         self.api_root = normalize_api_root(base_url)
         self.api_key = api_key
 

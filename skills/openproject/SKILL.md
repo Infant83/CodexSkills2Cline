@@ -11,12 +11,25 @@ description: Work with internal OpenProject through the REST API using OPENPROJE
 - Require `OPENPROJECT_BASE_URL` and `OPENPROJECT_API_KEY` before calling the API.
 - Use the bundled helper at `$HOME/.cline/skills/openproject/scripts/openproject_api.py` for OpenProject access.
 - Accept `OPENPROJECT_BASE_URL` as either the instance root or the `/api/v3` root. The helper normalizes both forms.
+- Authentication uses Basic auth with `apikey:<OPENPROJECT_API_KEY>` encoded as Base64.
 - Read first. If the user asks for a mutation, inspect the target resource before writing.
 
 Example:
 
 ```bash
 python "$HOME/.cline/skills/openproject/scripts/openproject_api.py" whoami
+```
+
+Environment examples:
+
+```powershell
+$env:OPENPROJECT_BASE_URL="https://example.test/openproject"
+$env:OPENPROJECT_API_KEY="your-api-key"
+```
+
+```bash
+export OPENPROJECT_BASE_URL="https://example.test/openproject"
+export OPENPROJECT_API_KEY="your-api-key"
 ```
 
 ## Common tasks

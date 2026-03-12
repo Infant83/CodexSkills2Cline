@@ -1,4 +1,5 @@
 import importlib.util
+import base64
 import unittest
 from pathlib import Path
 
@@ -34,6 +35,35 @@ class BuildUrlTests(unittest.TestCase):
         api_root = "https://example.test/api/v3"
         url = openproject_api.build_url(api_root, "/attachments/99")
         self.assertEqual(url, "https://example.test/attachments/99")
+
+
+class BasicAuthHeaderTests(unittest.TestCase):
+    def test_basic_auth_header_uses_expected_ascii_value(self):
+        header = openproject_api.basic_auth_header("token-123")
+        self.assertEqual(header, "Basic YXBpa2V5OnRva2VuLTEyMw==")
+
+    def test_basic_auth_header_supports_non_ascii_api_key(self):
+        header = openproject_api.basic_auth_header("키-123")
+        encoded = header.split(" ", 1)[1]
+        decoded = base64.b64decode(encoded).decode("utf-8")
+        self.assertEqual(decoded, "apikey:키-123")
+
+
+class MissingEnvMessageTests(unittest.TestCase):
+    def test_missing_base_url_message_mentions_setup_examples(self):
+        with self.assertRaises(RuntimeError) as context:
+            openproject_api.normalize_api_root("")
+        message = str(context.exception)
+        self.assertIn("OPENPROJECT_BASE_URL", message)
+        self.assertIn("PowerShell:", message)
+        self.assertIn("Bash:", message)
+
+    def test_missing_api_key_message_mentions_basic_auth_usage(self):
+        with self.assertRaises(RuntimeError) as context:
+            openproject_api.OpenProjectClient("https://example.test/openproject", "")
+        message = str(context.exception)
+        self.assertIn("OPENPROJECT_API_KEY", message)
+        self.assertIn("Basic auth", message)
 
 
 if __name__ == "__main__":

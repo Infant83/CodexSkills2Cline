@@ -6,6 +6,7 @@ Use this workflow when the user wants to inspect, create, or update OpenProject 
 
 1. Check prerequisites.
    - Confirm `OPENPROJECT_BASE_URL` and `OPENPROJECT_API_KEY` are available.
+   - If either variable is missing, stop and tell the user to set it before continuing.
    - Use the installed helper script from the `openproject` skill.
 
 2. Read first.
