@@ -141,7 +141,7 @@ This pack configures:
 - `recent = "qwen:Qwen3-Codex-480B-A35B-Instruct"`
 - a custom `qwen` provider pointing to the on-prem OpenAI-compatible endpoint at `http://10.116.240.101:8030/openai`
 
-Because the provider name is a custom alias, the config uses `class_path = "langchain_openai.ChatOpenAI"`.
+Because the provider name is a custom alias, the config uses `class_path = "langchain_openai:ChatOpenAI"`.
 If the DeepAgents environment cannot import that class, install `langchain-openai` in the same Python environment as `deepagents`.
 
 ## Verify
@@ -167,7 +167,7 @@ python "$HOME/.cline/skills/jupyter-notebook/scripts/new_notebook.py" --help
 
 ```powershell
 python -m pip install pywin32
-powershell -File "$HOME/.cline/skills/outlook-mail/scripts/outlook_mail.ps1" list-folders --max-depth 1
+python -X utf8 "$HOME/.cline/skills/outlook-mail/scripts/outlook_mail.py" list-folders --max-depth 1
 ```
 
 If you are verifying the DeepAgents-installed copy, replace `~/.cline/skills` with `~/.deepagents/agent/skills`.
@@ -182,7 +182,7 @@ The Outlook skills are Windows-only and expect:
 - `pywin32` installed for the Python-first `outlook-mail` skill
 
 If the folder alias does not work because of a localized mailbox, run the folder listing command first and reuse the exact reported folder path.
-`outlook-mail` is Python-first and initializes COM inside Python, so the bundled `outlook_mail.ps1` wrapper does not require `-STA`.
+`outlook-mail` is Python-first and initializes COM inside Python, so run the `.py` entry point directly.
 
 Outbound mail safety rules in `outlook-mail`:
 
