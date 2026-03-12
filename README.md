@@ -6,18 +6,19 @@ Included:
 
 - Global or project-local Cline rules
 - Two reusable workflows
-- Five local-first skills:
+- Six local-first skills:
   - `openproject`
   - `doc`
   - `pdf`
   - `spreadsheet`
   - `jupyter-notebook`
+  - `outlook-mail-archive`
 
 Excluded on purpose:
 
 - `playwright`
 - `hwpx`
-- NotebookLM, Genspark, email, and other external-service-heavy skills
+- NotebookLM, Genspark, and other external-service-heavy skills
 
 ## Folder layout
 
@@ -112,6 +113,32 @@ python "$HOME/.cline/skills/openproject/scripts/openproject_api.py" whoami
 ```powershell
 python "$HOME/.cline/skills/jupyter-notebook/scripts/new_notebook.py" --help
 ```
+
+6. For Outlook archiving on Windows, test:
+
+```powershell
+powershell -STA -File "$HOME/.cline/skills/outlook-mail-archive/scripts/list_outlook_folders.ps1" -MaxDepth 1
+```
+
+7. To export a small inbox sample:
+
+```powershell
+powershell -STA -File "$HOME/.cline/skills/outlook-mail-archive/scripts/export_outlook_mail.ps1" `
+  -FolderPath Inbox `
+  -OutputRoot "$HOME\Documents\mail-archive" `
+  -MaxItems 5
+```
+
+## Outlook setup
+
+This skill is Windows-only and expects:
+
+- Desktop Outlook installed
+- At least one mailbox profile already signed in
+- Local permission to let Outlook COM read messages and save attachments
+
+If the folder alias does not work because of a localized mailbox, run the folder listing command first and reuse the exact reported folder path.
+If you invoke the scripts from PowerShell 7 or another host, call them through `powershell.exe -STA -File ...` so Outlook COM runs in the expected apartment model.
 
 ## Obsidian path setup
 
